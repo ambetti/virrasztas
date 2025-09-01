@@ -1,18 +1,22 @@
 {
   "name": "virrasztas",
   "version": "1.0.0",
-  "description": "",
+  "description": "Jelentkezési felület Szent Mihály búcsú virrasztásra",
   "main": "server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Beata",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^2.2.0",
     "express": "^5.1.0",
     "nodemailer": "^7.0.5"
+  },
+  "devDependencies": {
+    "@flydotio/dockerfile": "^0.7.10"
   }
 }

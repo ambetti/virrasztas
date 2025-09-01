@@ -9,7 +9,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -51,9 +51,12 @@ function generateTimeSlots() {
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER, 
-    pass: process.env.EMAIL_PASS  
-  }
+    user: "szentmihalyjelentkezes@gmail.com",
+    pass: "szpdkzrhrwmtyydu"
+},
+tls: {
+    rejectUnauthorized: false
+}
 });
 
 // Főoldal
@@ -84,11 +87,11 @@ app.get("/", (req, res) => {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Candal&family=Sanchez&display=swap" rel="stylesheet">
     <style>
-      body { font-family: 'Sanchez', serif; background: #f9f9f9; }
-      h1 { font-family: 'Candal', sans-serif; }
+      body { font-family: 'Wellfleet', serif; background: #f9f9f9; }
+      h1 { font-family: 'City Lights', sans-serif; }
       .btn-slot { 
         background-color: #b29660; 
-        border-color: #b29660; 
+        border-color: #527351; 
         color: white; 
         margin: 10px; 
         width: 100%;
@@ -108,13 +111,8 @@ app.get("/", (req, res) => {
         margin: 10px;
       }
       @media (max-width: 576px) {
-        .card {
-          flex: 1 1 90%;
-          max-width: 90%;
-        }
-        .btn-slot {
-          max-width: 100%;
-        }
+        .card { flex: 1 1 90%; max-width: 90%; }
+        .btn-slot { max-width: 100%; }
       }
     </style>
   </head>
@@ -128,7 +126,7 @@ app.get("/", (req, res) => {
     <div class="modal fade" id="formModal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
-          <form id="signupForm" method="post" action="/signup">
+          <form id="signupForm">
             <div class="modal-header">
               <h5 class="modal-title">Jelentkezés</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -166,10 +164,11 @@ app.get("/", (req, res) => {
 
       document.getElementById("signupForm").addEventListener("submit", async function(e) {
         e.preventDefault();
-        const formData = new FormData(this);
+        const formData = Object.fromEntries(new FormData(this).entries());
         const response = await fetch("/signup", {
           method: "POST",
-          body: formData
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData)
         });
         if (response.ok) {
           alert("Köszönjük, hogy jelentkeztél a virrasztásra!");
@@ -187,24 +186,41 @@ app.get("/", (req, res) => {
 // Foglalás kezelése
 app.post("/signup", (req, res) => {
   const { name, email, phone, time } = req.body;
-  let reservations = loadReservations();
+  if (!name || !email || !phone || !time) return res.sendStatus(400);
 
+  let reservations = loadReservations();
   reservations.push({ name, email, phone, time });
   saveReservations(reservations);
 
+  // E-mail szervezőnek
   transporter.sendMail({
-    from: process.env.EMAIL_USER,
+    from: "szentmihalyjelentkezes@gmail.com",
     to: "szentmihalyjelentkezes@gmail.com",
     subject: "Új jelentkezés virrasztásra",
     text: `Időpont: ${time}\nNév: ${name}\nE-mail: ${email}\nTelefon: ${phone}`
   });
 
+  // Visszaigazolás a jelentkezőnek
   transporter.sendMail({
-    from: process.env.EMAIL_USER,
+    from: "szentmihalyjelentkezes@gmail.com",
     to: email,
     subject: "Visszaigazolás - Virrasztás",
-    text: `Köszönjük, hogy jelentkeztél a virrasztásra!\nIdőpontod: ${time}`
-  });
+    text: `transporter.sendMail({
+  from: process.env.EMAIL_USER,
+  to: email,
+  subject: "Visszaigazolás - Virrasztás",
+  html: `
+    <div style="font-family: Georgia, serif; color: #333; line-height: 1.6; font-size: 16px;">
+      <h2 style="color:#b29660;">Köszönjük a virrasztásra való jelentkezést!</h2>
+      <p>Az időpont, melyre jelentkeztél: <b>${time}</b></p>
+      <p>Kérjük, pontosan érkezz, mert az ajtókat csak minden egész órában nyitjuk ki!</p>
+      <p>Ha valami miatt úgy alakulna, hogy mégsem tudsz megjelenni az elvállalt időpontban, 
+      kérjük, minél hamarabb jelezd a 
+      <a href="mailto:szentmihalyjelentkezes@gmail.com">szentmihalyjelentkezes@gmail.com</a> e-mail címre!</p>
+      <p style="margin-top:20px;">Krisztusban szeretettel,<br><i>a Szervezők</i></p>
+    </div>
+  `
+});
 
   res.sendStatus(200);
 });
