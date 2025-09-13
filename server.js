@@ -53,10 +53,10 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: "szentmihalyjelentkezes@gmail.com",
     pass: "szpdkzrhrwmtyydu"
-},
-tls: {
+  },
+  tls: {
     rejectUnauthorized: false
-}
+  }
 });
 
 // Főoldal
@@ -71,9 +71,11 @@ app.get("/", (req, res) => {
     const label = `${s.start} - ${s.end}`;
     if (!reservedTimes.includes(label)) {
       slotHtml += `
-        <div class="card shadow">
-          <h5>${label}</h5>
-          <button class="btn btn-slot" onclick="openForm('${label}')">Jelentkezem</button>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+          <div class="card shadow h-100 text-center p-3">
+            <h5>${label}</h5>
+            <button class="btn btn-slot mt-3" onclick="openForm('${label}')">Jelentkezem</button>
+          </div>
         </div>
       `;
     }
@@ -85,40 +87,31 @@ app.get("/", (req, res) => {
     <meta charset="UTF-8">
     <title>Szent Mihály búcsú - Virrasztás</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Candal&family=Sanchez&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Candal&display=swap" rel="stylesheet">
     <style>
-      body { font-family: 'Wellfleet', serif; background: #f9f9f9; }
-      h1 { font-family: 'City Lights', sans-serif; }
+      body { font-family: 'Georgia', serif; background: #f9f9f9; }
+      h1 { font-family: 'Candal', sans-serif; color: #333; }
       .btn-slot { 
-        background-color: #b29660; 
-        border-color: #527351; 
-        color: white; 
-        margin: 10px; 
+        background-color: #f5f5dc; 
+        border: 1px solid #ccc;
+        color: #333; 
+        font-weight: bold;
         width: 100%;
-        max-width: 200px; 
+        padding: 12px;
+      }
+      .btn-slot:hover {
+        background-color: #eae6d3;
       }
       .slots-container {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 20px; 
-      }
-      .card {
-        flex: 1 1 220px;
-        max-width: 220px;
-        text-align: center;
-        padding: 15px;
-        margin: 10px;
-      }
-      @media (max-width: 576px) {
-        .card { flex: 1 1 90%; max-width: 90%; }
-        .btn-slot { max-width: 100%; }
       }
     </style>
   </head>
   <body class="container py-4">
     <h1 class="text-center mb-4">Szent Mihály búcsú - Virrasztás</h1>
-    <div class="slots-container">
+    <div class="row slots-container">
       ${slotHtml || "<p class='text-center'>Minden idősáv foglalt.</p>"}
     </div>
 
@@ -205,22 +198,18 @@ app.post("/signup", (req, res) => {
     from: "szentmihalyjelentkezes@gmail.com",
     to: email,
     subject: "Visszaigazolás - Virrasztás",
-    text: `transporter.sendMail({
-  from: process.env.EMAIL_USER,
-  to: email,
-  subject: "Visszaigazolás - Virrasztás",
-  html: `
-    <div style="font-family: Georgia, serif; color: #333; line-height: 1.6; font-size: 16px;">
-      <h2 style="color:#b29660;">Köszönjük a virrasztásra való jelentkezést!</h2>
-      <p>Az időpont, melyre jelentkeztél: <b>${time}</b></p>
-      <p>Kérjük, pontosan érkezz, mert az ajtókat csak minden egész órában nyitjuk ki!</p>
-      <p>Ha valami miatt úgy alakulna, hogy mégsem tudsz megjelenni az elvállalt időpontban, 
-      kérjük, minél hamarabb jelezd a 
-      <a href="mailto:szentmihalyjelentkezes@gmail.com">szentmihalyjelentkezes@gmail.com</a> e-mail címre!</p>
-      <p style="margin-top:20px;">Krisztusban szeretettel,<br><i>a Szervezők</i></p>
-    </div>
-  `
-});
+    html: `
+      <div style="font-family: Georgia, serif; color: #333; line-height: 1.6; font-size: 16px;">
+        Köszönjük a virrasztásra való jelentkezést!<br>
+        Az időpont, melyre jelentkeztél: <strong>${time}</strong><br><br>
+        Kérjük, pontosan érkezz, mert az ajtókat csak minden egész órában nyitjuk ki!<br>
+        Ha valami miatt mégsem tudsz megjelenni, jelezd a 
+        <a href="mailto:szentmihalyjelentkezes@gmail.com">szentmihalyjelentkezes@gmail.com</a> e-mail címen!<br><br>
+        Krisztusban szeretettel,<br>
+        a Szervezők
+      </div>
+    `
+  });
 
   res.sendStatus(200);
 });
